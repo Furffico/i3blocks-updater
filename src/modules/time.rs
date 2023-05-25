@@ -15,7 +15,7 @@ impl Module for TimeModule {
     }
     fn update(&mut self) -> UpdateStatus {
         let now = Local::now();
-        self.0 = format!("{:}", now);
+        self.0 = format!("{}", now.format("%b.%d %T"));
         UpdateStatus::All
     }
     fn update_interval(&self) -> u64 {

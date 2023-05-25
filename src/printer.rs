@@ -36,11 +36,13 @@ impl Printer {
         }
     }
 
-    pub fn output(&mut self, modules: &Vec<Box<dyn Module>>) {
+    pub fn output(&mut self, modules: &[Box<dyn Module>]) {
         let mut s = String::new();
-        for m in modules {
+        for (i, m) in modules.iter().enumerate() {
+            if i > 0 {
+                s.push(' ');
+            }
             s.push_str(m.get_string());
-            s.push(' ');
         }
         println!("{}", s);
         self.require_refresh = false;

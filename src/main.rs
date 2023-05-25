@@ -8,31 +8,48 @@ mod printer;
 mod schedule;
 
 use module::Module;
-use modules::get_module;
+use modules::{get_module, ALL_MODULES};
 use printer::Printer;
 use schedule::Schedule;
 
 fn main() {
-    let mut modules: Vec<Box<dyn Module>> = Vec::new();
-    for name in env::args().skip(1) {
-        if let Some(m) = get_module(&name) {
-            modules.push(m);
+    /* ------------------------------- module list ------------------------------ */
+    let mut modules: Vec<Box<dyn Module>> = {
+        let mut modules = Vec::new();
+        let og_args: Vec<String> = env::args().collect();
+        let args = if og_args.len() <= 1 {
+            ALL_MODULES.to_vec()
         } else {
-            panic!("Module {} not found!", name);
+            og_args.iter().skip(1).map(|v| v.as_str()).collect()
+        };
+        for name in args {
+            if let Some(m) = get_module(name) {
+                modules.push(m);
+            } else {
+                panic!("Module {} not found!", name);
+            }
         }
-    }
-    if modules.is_empty() {
-        panic!("No module is selected!")
-    }
+        if modules.is_empty() {
+            panic!("No module is selected!");
+        }
+        modules
+    };
 
-    let t = Instant::now();
-    let mut schedule: Schedule = Schedule::new();
+    /* --------------------------------- printer -------------------------------- */
     let mut printer = Printer::new();
 
-    for i in 0..modules.len() {
-        schedule.push_job(t, i);
-    }
+    /* -------------------------------- schedule -------------------------------- */
+    let mut schedule: Schedule = {
+        let mut sc = Schedule::new();
+        let t = Instant::now();
+        // pending initial jobs
+        for i in 0..modules.len() {
+            sc.push_job(t, i);
+        }
+        sc
+    };
 
+    /* -------------------------------- mainloop -------------------------------- */
     while let Some(job) = schedule.pop() {
         let target_time = job.timestamp;
         let module = match modules.get_mut(job.module_index) {

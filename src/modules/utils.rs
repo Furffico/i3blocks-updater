@@ -37,3 +37,17 @@ pub fn extract_from_file(
         Ok(UpdateStatus::Some)
     }
 }
+
+const PREFIX: &[&str] = &["B", "KiB", "MiB", "GiB", "TiB", "PiB", "EiB"];
+
+pub fn format_bytes(bytes: u64) -> String {
+    let mut n = 0;
+    let converted = bytes as f64;
+    let mut bytes = bytes;
+    while bytes >= 1024 {
+        bytes >>= 10;
+        n += 1;
+    }
+    let converted = converted / ((1 << (n * 10)) as f64);
+    format!("{:.2}{}", converted, PREFIX[n])
+}
